@@ -1,7 +1,7 @@
 /*!
  * performant-ui-select
  * https://github.com/Ventilador/performant-ui-select
- * Version: 0.19.6 - 2017-01-04T15:30:44.476Z
+ * Version: 0.19.6 - 2017-01-04T16:00:19.673Z
  * License: MIT
  */
 
@@ -269,7 +269,7 @@ uis.directive('uiSelectChoices',
 
           return function link(scope, element, attrs, $select) {
             if (inProteus) {
-              $select.choicesTranscludeHTML = arguments[5]; //transcludeFn
+              $select.choicesTranscludeHTML = arguments[4]; //transcludeFn
             }
             $select.parseRepeatAttr(attrs.repeat, groupByExp, groupFilterExp); //Result ready at $select.parserResult
 
