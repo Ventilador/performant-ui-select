@@ -62,7 +62,7 @@ uis.directive('uiSelectChoices',
 
           return function link(scope, element, attrs, $select, transcludeFn) {
             if (inProteus) {
-              $select.choicesTranscludeHTML = transcludeFn; //transcludeFn
+              $select.choicesTransclude = transcludeFn; //transcludeFn
             }
             $select.parseRepeatAttr(attrs.repeat, groupByExp, groupFilterExp); //Result ready at $select.parserResult
 
