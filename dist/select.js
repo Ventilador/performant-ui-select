@@ -1,7 +1,7 @@
 /*!
  * performant-ui-select
  * https://github.com/Ventilador/performant-ui-select
- * Version: 0.19.6 - 2017-01-04T16:00:19.673Z
+ * Version: 0.19.6 - 2017-01-04T16:07:51.648Z
  * License: MIT
  */
 
@@ -267,9 +267,9 @@ uis.directive('uiSelectChoices',
           var clickTarget = $window.document.addEventListener ? choices : rowsInner;
           clickTarget.attr('ng-click', '$select.select(' + parserResult.itemName + ',$select.skipFocusser,$event)');
 
-          return function link(scope, element, attrs, $select) {
+          return function link(scope, element, attrs, $select, transcludeFn) {
             if (inProteus) {
-              $select.choicesTranscludeHTML = arguments[4]; //transcludeFn
+              $select.choicesTranscludeHTML = transcludeFn; //transcludeFn
             }
             $select.parseRepeatAttr(attrs.repeat, groupByExp, groupFilterExp); //Result ready at $select.parserResult
 

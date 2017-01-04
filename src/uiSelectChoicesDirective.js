@@ -60,9 +60,9 @@ uis.directive('uiSelectChoices',
           var clickTarget = $window.document.addEventListener ? choices : rowsInner;
           clickTarget.attr('ng-click', '$select.select(' + parserResult.itemName + ',$select.skipFocusser,$event)');
 
-          return function link(scope, element, attrs, $select) {
+          return function link(scope, element, attrs, $select, transcludeFn) {
             if (inProteus) {
-              $select.choicesTranscludeHTML = arguments[4]; //transcludeFn
+              $select.choicesTranscludeHTML = transcludeFn; //transcludeFn
             }
             $select.parseRepeatAttr(attrs.repeat, groupByExp, groupFilterExp); //Result ready at $select.parserResult
 
