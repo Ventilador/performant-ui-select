@@ -1,6 +1,6 @@
 uis.directive('uiSelectChoices',
-  ['uiSelectConfig', 'uisRepeatParser', 'uiSelectMinErr', '$compile', '$window',
-    function (uiSelectConfig, RepeatParser, uiSelectMinErr, $compile, $window) {
+  ['uiSelectConfig', 'uisRepeatParser', 'uiSelectMinErr', '$compile', '$window', '$injector',
+    function (uiSelectConfig, RepeatParser, uiSelectMinErr, $compile, $window, $injector) {
 
       return {
         restrict: 'EA',
@@ -17,7 +17,7 @@ uis.directive('uiSelectChoices',
         },
 
         compile: function (tElement, tAttrs) {
-
+          var inProteus = $injector.has('proteusRepeatDirective');
           if (!tAttrs.repeat) throw uiSelectMinErr('repeat', "Expected 'repeat' expression.");
 
           // var repeat = RepeatParser.parse(attrs.repeat);
@@ -37,30 +37,33 @@ uis.directive('uiSelectChoices',
             throw uiSelectMinErr('rows', "Expected 1 .ui-select-choices-row but got '{0}'.", choices.length);
           }
 
-          choices.wrap(
-            angular.element('<div/>')
-              .attr('proteus-repeat', parserResult.repeatExpression(groupByExp))
-              .attr('ng-if', '$select.open'));
-
-          // ppertino: this is not needed anymore
-          // choices.attr('proteus-repeat', parserResult.repeatExpression(groupByExp))
-          //        .attr('ng-if', '$select.open'); //Prevent unnecessary watches when dropdown is closed
-
-
           var rowsInner = tElement.querySelectorAll('.ui-select-choices-row-inner');
           if (rowsInner.length !== 1) {
             throw uiSelectMinErr('rows', "Expected 1 .ui-select-choices-row-inner but got '{0}'.", rowsInner.length);
           }
-          // ppertino: this isn't either
-          //  rowsInner.attr('uis-transclude-append', ''); //Adding uisTranscludeAppend directive to row element after choices element has ngRepeat
+          if (inProteus) {
+            choices.wrap(
+              angular.element('<div/>')
+                .attr('proteus-repeat', parserResult.repeatExpression(groupByExp))
+                .attr('ng-if', '$select.open')
+                .attr('proteus-repeat-transclude', '$select.choicesTransclude')
+                .attr('proteus-repeat-transclude-tag', 'to-replace'));
 
+
+            rowsInner.html('<to-replace/>');
+          } else {
+            choices.attr('ng-repeat', parserResult.repeatExpression(groupByExp))
+              .attr('ng-if', '$select.open'); //Prevent unnecessary watches when dropdown is closed
+            rowsInner.attr('uis-transclude-append', ''); //Adding uisTranscludeAppend directive to row element after choices element has ngRepeat
+          }
           // If IE8 then need to target rowsInner to apply the ng-click attr as choices will not capture the event. 
           var clickTarget = $window.document.addEventListener ? choices : rowsInner;
           clickTarget.attr('ng-click', '$select.select(' + parserResult.itemName + ',$select.skipFocusser,$event)');
 
           return function link(scope, element, attrs, $select) {
-
-
+            if (inProteus) {
+              $select.choicesTranscludeHTML = arguments[5]; //transcludeFn
+            }
             $select.parseRepeatAttr(attrs.repeat, groupByExp, groupFilterExp); //Result ready at $select.parserResult
 
             $select.disableChoiceExpression = attrs.uiDisableChoice;
