@@ -45,25 +45,20 @@ uis.directive('uiSelectChoices',
             choices.wrap(
               angular.element('<div/>')
                 .attr('proteus-repeat', parserResult.repeatExpression(groupByExp))
-                .attr('ng-if', '$select.open')
-                .attr('proteus-repeat-transclude', '$select.choicesTransclude')
-                .attr('proteus-repeat-transclude-tag', 'to-replace'));
+                .attr('ng-if', '$select.open'));
 
 
-            rowsInner.html('<to-replace/>');
           } else {
             choices.attr('ng-repeat', parserResult.repeatExpression(groupByExp))
               .attr('ng-if', '$select.open'); //Prevent unnecessary watches when dropdown is closed
-            rowsInner.attr('uis-transclude-append', ''); //Adding uisTranscludeAppend directive to row element after choices element has ngRepeat
           }
+          rowsInner.attr('uis-transclude-append', '$select.choicesTransclude'); //Adding uisTranscludeAppend directive to row element after choices element has ngRepeat
           // If IE8 then need to target rowsInner to apply the ng-click attr as choices will not capture the event. 
           var clickTarget = $window.document.addEventListener ? choices : rowsInner;
           clickTarget.attr('ng-click', '$select.select(' + parserResult.itemName + ',$select.skipFocusser,$event)');
 
           return function link(scope, element, attrs, $select, transcludeFn) {
-            if (inProteus) {
-              $select.choicesTransclude = transcludeFn; //transcludeFn
-            }
+            $select.choicesTransclude = transcludeFn; //transcludeFn
             $select.parseRepeatAttr(attrs.repeat, groupByExp, groupFilterExp); //Result ready at $select.parserResult
 
             $select.disableChoiceExpression = attrs.uiDisableChoice;
