@@ -17,7 +17,6 @@ uis.directive('uiSelectChoices',
         },
 
         compile: function (tElement, tAttrs) {
-          var inProteus = $injector.has('proteusRepeatDirective');
           if (!tAttrs.repeat) throw uiSelectMinErr('repeat', "Expected 'repeat' expression.");
 
           // var repeat = RepeatParser.parse(attrs.repeat);
@@ -41,23 +40,34 @@ uis.directive('uiSelectChoices',
           if (rowsInner.length !== 1) {
             throw uiSelectMinErr('rows', "Expected 1 .ui-select-choices-row-inner but got '{0}'.", rowsInner.length);
           }
-          if (inProteus) {
+
+          if ($injector.has('virtualRepeatDirective')) {
+            choices.attr('virtual-repeat', parserResult.virtualRepeatExpression(groupByExp)); // uses empty array is its closed
+          } else if ($injector.has('proteusRepeatDirective')) {
             choices.wrap(
               angular.element('<div/>')
                 .attr('proteus-repeat', parserResult.repeatExpression(groupByExp))
                 .attr('ng-if', '$select.open'));
 
-
           } else {
             choices.attr('ng-repeat', parserResult.repeatExpression(groupByExp))
               .attr('ng-if', '$select.open'); //Prevent unnecessary watches when dropdown is closed
           }
+
           rowsInner.attr('uis-transclude-append', '$select.choicesTransclude'); //Adding uisTranscludeAppend directive to row element after choices element has ngRepeat
           // If IE8 then need to target rowsInner to apply the ng-click attr as choices will not capture the event. 
           var clickTarget = $window.document.addEventListener ? choices : rowsInner;
           clickTarget.attr('ng-click', '$select.select(' + parserResult.itemName + ',$select.skipFocusser,$event)');
 
           return function link(scope, element, attrs, $select, transcludeFn) {
+            var emptyArray = [];
+            $select.getCollection = function () {
+              if ($select.open) {
+                return $select.items;
+              } else {
+                return emptyArray;
+              }
+            };
             $select.choicesTransclude = transcludeFn; //transcludeFn
             $select.parseRepeatAttr(attrs.repeat, groupByExp, groupFilterExp); //Result ready at $select.parserResult
 

@@ -1,7 +1,7 @@
 /*!
  * performant-ui-select
  * https://github.com/Ventilador/performant-ui-select
- * Version: 0.19.6 - 2017-01-04T20:41:28.605Z
+ * Version: 0.19.6 - 2017-01-06T18:02:41.160Z
  * License: MIT
  */
 
@@ -225,7 +225,6 @@ uis.directive('uiSelectChoices',
         },
 
         compile: function (tElement, tAttrs) {
-          var inProteus = $injector.has('proteusRepeatDirective');
           if (!tAttrs.repeat) throw uiSelectMinErr('repeat', "Expected 'repeat' expression.");
 
           // var repeat = RepeatParser.parse(attrs.repeat);
@@ -249,23 +248,34 @@ uis.directive('uiSelectChoices',
           if (rowsInner.length !== 1) {
             throw uiSelectMinErr('rows', "Expected 1 .ui-select-choices-row-inner but got '{0}'.", rowsInner.length);
           }
-          if (inProteus) {
+
+          if ($injector.has('virtualRepeatDirective')) {
+            choices.attr('virtual-repeat', parserResult.virtualRepeatExpression(groupByExp)); // uses empty array is its closed
+          } else if ($injector.has('proteusRepeatDirective')) {
             choices.wrap(
               angular.element('<div/>')
                 .attr('proteus-repeat', parserResult.repeatExpression(groupByExp))
                 .attr('ng-if', '$select.open'));
 
-
           } else {
             choices.attr('ng-repeat', parserResult.repeatExpression(groupByExp))
               .attr('ng-if', '$select.open'); //Prevent unnecessary watches when dropdown is closed
           }
+
           rowsInner.attr('uis-transclude-append', '$select.choicesTransclude'); //Adding uisTranscludeAppend directive to row element after choices element has ngRepeat
           // If IE8 then need to target rowsInner to apply the ng-click attr as choices will not capture the event. 
           var clickTarget = $window.document.addEventListener ? choices : rowsInner;
           clickTarget.attr('ng-click', '$select.select(' + parserResult.itemName + ',$select.skipFocusser,$event)');
 
           return function link(scope, element, attrs, $select, transcludeFn) {
+            var emptyArray = [];
+            $select.getCollection = function () {
+              if ($select.open) {
+                return $select.items;
+              } else {
+                return emptyArray;
+              }
+            };
             $select.choicesTransclude = transcludeFn; //transcludeFn
             $select.parseRepeatAttr(attrs.repeat, groupByExp, groupFilterExp); //Result ready at $select.parserResult
 
@@ -2314,7 +2324,7 @@ uis.directive('uisOpenClose', ['$parse', '$timeout', function ($parse, $timeout)
  * https://github.com/angular-ui/ui-select/commit/5dd63ad#commitcomment-5504697
  */
 
-uis.service('uisRepeatParser', ['uiSelectMinErr','$parse', function(uiSelectMinErr, $parse) {
+uis.service('uisRepeatParser', ['uiSelectMinErr', '$parse', function (uiSelectMinErr, $parse) {
   var self = this;
 
   /**
@@ -2324,7 +2334,7 @@ uis.service('uisRepeatParser', ['uiSelectMinErr','$parse', function(uiSelectMinE
    * source = "addresses | filter: {street: $select.search}",
    * trackByExp = "$index",
    */
-  self.parse = function(expression) {
+  self.parse = function (expression) {
 
 
     var match;
@@ -2344,11 +2354,11 @@ uis.service('uisRepeatParser', ['uiSelectMinErr','$parse', function(uiSelectMinE
 
     if (!match) {
       throw uiSelectMinErr('iexp', "Expected expression in form of '_item_ in _collection_[ track by _id_]' but got '{0}'.",
-              expression);
+        expression);
     }
-    
-    var source = match[5], 
-        filters = '';
+
+    var source = match[5],
+      filters = '';
 
     // When using (key,value) ui-select requires filters to be extracted, since the object
     // is converted to an array for $select.items 
@@ -2358,10 +2368,10 @@ uis.service('uisRepeatParser', ['uiSelectMinErr','$parse', function(uiSelectMinE
       source = match[5].replace(/(^\()|(\)$)/g, '');
       // match all after | but not after ||
       var filterMatch = match[5].match(/^\s*(?:[\s\S]+?)(?:[^\|]|\|\|)+([\s\S]*)\s*$/);
-      if(filterMatch && filterMatch[1].trim()) {
+      if (filterMatch && filterMatch[1].trim()) {
         filters = filterMatch[1];
         source = source.replace(filters, '');
-      }      
+      }
     }
 
     return {
@@ -2377,12 +2387,19 @@ uis.service('uisRepeatParser', ['uiSelectMinErr','$parse', function(uiSelectMinE
           expression += ' track by ' + this.trackByExp;
         }
         return expression;
-      } 
+      },
+      virtualRepeatExpression: function (grouped) {
+        var expression = this.itemName + ' in ' + (grouped ? '$group.items' : '$select.getCollection()');
+        if (this.trackByExp) {
+          expression += ' track by ' + this.trackByExp;
+        }
+        return expression;
+      }
     };
 
   };
 
-  self.getGroupNgRepeatExpression = function() {
+  self.getGroupNgRepeatExpression = function () {
     return '$group in $select.groups track by $group.name';
   };
 
