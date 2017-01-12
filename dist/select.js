@@ -1,7 +1,7 @@
 /*!
  * performant-ui-select
  * https://github.com/Ventilador/performant-ui-select
- * Version: 0.19.6 - 2017-01-06T18:02:41.160Z
+ * Version: 0.19.6 - 2017-01-12T12:30:38.492Z
  * License: MIT
  */
 
@@ -137,7 +137,8 @@ var uis = angular.module('ui.select', [])
   .directive('uisTranscludeAppend', ['$parse', function ($parse) {
     return {
       link: function (scope, element, attrs, ctrl, transclude) {
-        $parse(attrs.uisTranscludeAppend)(scope)(scope, function (clone) {
+        //  $parse(attrs.uisTranscludeAppend)(scope)
+        (transclude || scope.$select.choicesTransclude)(scope, function (clone) {
           element.append(clone);
         });
       }
@@ -262,7 +263,7 @@ uis.directive('uiSelectChoices',
               .attr('ng-if', '$select.open'); //Prevent unnecessary watches when dropdown is closed
           }
 
-          rowsInner.attr('uis-transclude-append', '$select.choicesTransclude'); //Adding uisTranscludeAppend directive to row element after choices element has ngRepeat
+          rowsInner.attr('uis-transclude-append', '$select.choicesTransclude'); //Adding uisTranscludeAppend directive to row element after choices element has the repeat
           // If IE8 then need to target rowsInner to apply the ng-click attr as choices will not capture the event. 
           var clickTarget = $window.document.addEventListener ? choices : rowsInner;
           clickTarget.attr('ng-click', '$select.select(' + parserResult.itemName + ',$select.skipFocusser,$event)');
