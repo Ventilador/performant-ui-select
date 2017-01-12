@@ -54,7 +54,7 @@ uis.directive('uiSelectChoices',
               .attr('ng-if', '$select.open'); //Prevent unnecessary watches when dropdown is closed
           }
 
-          rowsInner.attr('uis-transclude-append', '$select.choicesTransclude'); //Adding uisTranscludeAppend directive to row element after choices element has ngRepeat
+          rowsInner.attr('uis-transclude-append', '$select.choicesTransclude'); //Adding uisTranscludeAppend directive to row element after choices element has the repeat
           // If IE8 then need to target rowsInner to apply the ng-click attr as choices will not capture the event. 
           var clickTarget = $window.document.addEventListener ? choices : rowsInner;
           clickTarget.attr('ng-click', '$select.select(' + parserResult.itemName + ',$select.skipFocusser,$event)');

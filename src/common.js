@@ -127,7 +127,8 @@ var uis = angular.module('ui.select', [])
   .directive('uisTranscludeAppend', ['$parse', function ($parse) {
     return {
       link: function (scope, element, attrs, ctrl, transclude) {
-        $parse(attrs.uisTranscludeAppend)(scope)(scope, function (clone) {
+        //  $parse(attrs.uisTranscludeAppend)(scope)
+        (transclude || scope.$select.choicesTransclude)(scope, function (clone) {
           element.append(clone);
         });
       }
